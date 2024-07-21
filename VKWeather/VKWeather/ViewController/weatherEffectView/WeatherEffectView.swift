@@ -13,6 +13,8 @@ protocol WeatherEffectViewProtocol: AnyObject {
 
 class WeatherEffectView: UIView, WeatherEffectViewProtocol {
     
+    var currentWeatherView: UIView?
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
     }
@@ -22,35 +24,50 @@ class WeatherEffectView: UIView, WeatherEffectViewProtocol {
     }
     
     func showWeather(type: String) {
-        self.subviews.forEach { $0.removeFromSuperview() }
-        self.layer.sublayers?.forEach { $0.removeFromSuperlayer() }
+        let newView = createWeatherView(type: type)
+        newView.alpha = 0
+        addSubview(newView)
+        
+        UIView.animate(withDuration: 1.0, animations: {
+            newView.alpha = 1
+            self.currentWeatherView?.alpha = 0
+        }, completion: { _ in
+            self.currentWeatherView?.removeFromSuperview()
+            self.currentWeatherView = newView
+        })
+    }
+    
+    func createWeatherView(type: String) -> UIView {
+        let weatherView = UIView(frame: self.bounds)
         
         switch type {
         case "Clear":
-            showClearWeather()
+            showClearWeather(in: weatherView)
         case "Rain":
-            showRainWeather()
+            showRainWeather(in: weatherView)
         case "Thunderstorm":
-            showThunderStormWeather()
+            showThunderStormWeather(in: weatherView)
         case "Fog":
-            showFogWeather()
+            showFogWeather(in: weatherView)
         case "Snow":
-            showSnowWeather()
+            showSnowWeather(in: weatherView)
         case "Cloudy":
-            showCloudyWeather()
+            showCloudyWeather(in: weatherView)
         default:
             break
         }
+        
+        return weatherView
     }
     
-    func showClearWeather() {
-        self.backgroundColor = .blue
+    func showClearWeather(in view: UIView) {
+        view.backgroundColor = .blue
         let sun = UIView()
         sun.backgroundColor = .yellow
         sun.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
         sun.layer.cornerRadius = 50
-        sun.center = self.center
-        self.addSubview(sun)
+        sun.center = view.center
+        view.addSubview(sun)
         let rotation = CABasicAnimation(keyPath: "transform.rotation")
         rotation.fromValue = 0
         rotation.toValue = Double.pi * 2
@@ -59,81 +76,82 @@ class WeatherEffectView: UIView, WeatherEffectViewProtocol {
         sun.layer.add(rotation, forKey: "rotation")
     }
     
-    func showRainWeather() {
-        self.backgroundColor = .gray
+    func showRainWeather(in view: UIView) {
+        view.backgroundColor = .gray
         for _ in 0..<100 {
             let drop = UIView()
             drop.backgroundColor = .blue
-            drop.frame = CGRect(x: CGFloat.random(in: 0..<self.bounds.width), y: CGFloat.random(in: -100..<self.bounds.height), width: 2, height: 10)
-            self.addSubview(drop)
+            drop.frame = CGRect(x: CGFloat.random(in: 0..<view.bounds.width), y: CGFloat.random(in: -100..<view.bounds.height), width: 2, height: 10)
+            view.addSubview(drop)
             
             UIView.animate(withDuration: Double.random(in: 0.5...1.0), delay: 0, options: [.repeat, .curveLinear], animations: {
-                drop.frame.origin.y = self.bounds.height
+                drop.frame.origin.y = view.bounds.height
             }, completion: { _ in
                 drop.frame.origin.y = CGFloat.random(in: -100..<0)
             })
         }
     }
     
-    func showThunderStormWeather() {
-        self.backgroundColor = .darkGray
+    func showThunderStormWeather(in view: UIView) {
+        view.backgroundColor = .darkGray
         let lightning = UIView()
         lightning.backgroundColor = .white
-        lightning.frame = CGRect(x: self.bounds.width / 2 - 1, y: 0, width: 2, height: self.bounds.height)
-        self.addSubview(lightning)
+        lightning.frame = CGRect(x: view.bounds.width / 2 - 1, y: 0, width: 2, height: view.bounds.height)
+        view.addSubview(lightning)
         
         UIView.animate(withDuration: 0.1, delay: Double.random(in: 1...3), options: [.repeat, .autoreverse], animations: {
             lightning.alpha = 0
         }, completion: nil)
     }
     
-    func showFogWeather() {
-        self.backgroundColor = .lightGray
+    func showFogWeather(in view: UIView) {
+        view.backgroundColor = .lightGray
         let fogLayer = CAGradientLayer()
-        fogLayer.frame = self.bounds
+        fogLayer.frame = view.bounds
         fogLayer.colors = [UIColor.clear.cgColor, UIColor.white.withAlphaComponent(0.8).cgColor, UIColor.clear.cgColor]
         fogLayer.locations = [0.0, 0.5, 1.0]
-        self.layer.addSublayer(fogLayer)
+        view.layer.addSublayer(fogLayer)
         
         let fogAnimation = CABasicAnimation(keyPath: "position")
-        fogAnimation.fromValue = NSValue(cgPoint: CGPoint(x: self.bounds.width / 2, y: self.bounds.height))
-        fogAnimation.toValue = NSValue(cgPoint: CGPoint(x: self.bounds.width / 2, y: 0))
+        fogAnimation.fromValue = NSValue(cgPoint: CGPoint(x: view.bounds.width / 2, y: view.bounds.height))
+        fogAnimation.toValue = NSValue(cgPoint: CGPoint(x: view.bounds.width / 2, y: 0))
         fogAnimation.duration = 5
         fogAnimation.repeatCount = .infinity
         fogLayer.add(fogAnimation, forKey: "position")
     }
     
-    func showSnowWeather() {
-        self.backgroundColor = .gray
+    func showSnowWeather(in view: UIView) {
+        view.backgroundColor = .gray
         for _ in 0..<100 {
             let flake = UIView()
             flake.backgroundColor = .white
-            flake.frame = CGRect(x: CGFloat.random(in: 0..<self.bounds.width), y: CGFloat.random(in: -100..<self.bounds.height), width: 5, height: 5)
+            flake.frame = CGRect(x: CGFloat.random(in: 0..<view.bounds.width), y: CGFloat.random(in: -100..<view.bounds.height), width: 5, height: 5)
             flake.layer.cornerRadius = 2.5
-            self.addSubview(flake)
+            view.addSubview(flake)
             
             UIView.animate(withDuration: Double.random(in: 3...5), delay: 0, options: [.repeat, .curveLinear], animations: {
-                flake.frame.origin.y = self.bounds.height
+                flake.frame.origin.y = view.bounds.height
             }, completion: { _ in
                 flake.frame.origin.y = CGFloat.random(in: -100..<0)
             })
         }
     }
     
-    func showCloudyWeather() {
-        self.backgroundColor = .lightGray
+    func showCloudyWeather(in view: UIView) {
+        view.backgroundColor = .lightGray
         for _ in 0..<5 {
             let cloud = UIView()
             cloud.backgroundColor = .white
-            cloud.frame = CGRect(x: CGFloat.random(in: -100..<self.bounds.width), y: CGFloat.random(in: 50..<self.bounds.height / 2), width: 200, height: 100)
+            cloud.frame = CGRect(x: CGFloat.random(in: -100..<view.bounds.width), y: CGFloat.random(in: 50..<view.bounds.height / 2), width: 200, height: 100)
             cloud.layer.cornerRadius = 50
-            self.addSubview(cloud)
+            view.addSubview(cloud)
             
             UIView.animate(withDuration: Double.random(in: 10...20), delay: 0, options: [.repeat, .curveLinear], animations: {
-                cloud.frame.origin.x = self.bounds.width / 2
+                cloud.frame.origin.x = view.bounds.width / 2
             }, completion: { _ in
                 cloud.frame.origin.x = CGFloat.random(in: -200..<0)
             })
         }
     }
 }
+
