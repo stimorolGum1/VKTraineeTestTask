@@ -1,0 +1,13 @@
+/* 
+ Localization.strings
+ VKWeather
+ 
+ Created by Danil on 21.07.2024.
+ 
+ */
+"weatherClear" = "Ясно";
+"weatherRain" = "Дождь";
+"weatherThunder" = "Гроза";
+"weatherFog" = "Туман";
+"weatherSnow" = "Снег";
+"weatherCloudy" = "Облачно";
